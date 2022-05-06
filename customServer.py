@@ -3,8 +3,15 @@ import keyboard
 import shutil
 import os
 import importlib
-from tkinter import *
+import tkinter as tk
+from tkinter import PhotoImage
 from tkinter import ttk
+from tkinter import Scrollbar
+from tkinter import BooleanVar
+from tkinter import StringVar
+from tkinter import Text
+
+
 import sys
 import threading
 import datetime
@@ -24,37 +31,41 @@ def main():
     global MasterList
     MasterList = "MasterList.txt"
     
-    root = Tk()
+    root = tk.Tk()
     
 
     root.geometry("700x500")
     root.pack_propagate(0)
     root.title('Candy Kingdom v0.1')
+    root.configure(bg='pink')
+    p1 = PhotoImage(file = 'pb-2.jpg')
+    root.iconphoto(False, p1)
 
     MasterFrame = ttk.Frame(root, padding=10, border = 2)
     MasterFrame.grid()
     
-    Frame = ttk.Frame(root, padding=10, border = 2)
+    Frame = tk.Frame(root, border = 2)
+    Frame.configure(bg='pink')
     Frame.grid()
 
     #--------------------------Console Window
     textbox = Console(MasterFrame)
     
     v=Scrollbar(MasterFrame, orient='vertical', command=textbox.yview, width = 10)
-    v.grid(row = 1, column = 1, sticky = "e")
-    textbox.grid(row = 1, column = 0, sticky = "nsew", columnspan = 2)
+    v.grid(row = 1, column = 2, sticky = "e", rowspan=2)
+    textbox.grid(row = 1, column = 0, sticky = "nsew", columnspan = 3)
     textbox["yscrollcommand"] = v.set
 
     #The boolean that decides whether the server is running
     masterButton = BooleanVar()
     
     #Greeting Message
-    ttk.Label(MasterFrame, text="Welcome to Server - Modulus - ", borderwidth = 10).grid(column=0, row=0)
+    ttk.Label(MasterFrame, text="- Welcome - ", borderwidth = 10).grid(column=0, row=0)
     
     #Server Console
-    
-    ttk.Button(MasterFrame, text="Stop", command=stop).grid(column=2, row=0)
-    ttk.Button(MasterFrame, text="Quit", command=root.destroy).grid(column=3, row=0)
+    ttk.Button(MasterFrame, text="Start", command=Server).grid(column=2, row=0)
+    ttk.Button(MasterFrame, text="Stop", command=stop).grid(column=3, row=0)
+    ttk.Button(MasterFrame, text="Quit", command=root.destroy).grid(column=4, row=0)
 
 
     arrayOfDays = [BooleanVar(),BooleanVar(),BooleanVar(),BooleanVar(),BooleanVar(), BooleanVar(),BooleanVar()]
@@ -84,7 +95,8 @@ def main():
 
         if counter == 7:
             all_CheckBox.set(1)
-
+            
+    W = "W"
     ttk.Checkbutton(Frame, text="Monday", variable=arrayOfDays[0], command=checkButtonChanger_helper).grid(row=6,column=0, sticky=W)
     ttk.Checkbutton(Frame, text="Tuesday", variable=arrayOfDays[1], command=checkButtonChanger_helper).grid(row=6,column=1, sticky=W)
     ttk.Checkbutton(Frame, text="Wednesday", variable=arrayOfDays[2], command=checkButtonChanger_helper).grid(row=6,column=2, sticky=W)
@@ -104,7 +116,7 @@ def main():
     scriptName = StringVar()
     timeSchedule = StringVar()
     
-    ttk.Label(Frame, text="Enter New Script").grid(row = 3, column = 0)
+    ttk.Label(Frame, text="Add New Script😎").grid(row = 3, column = 0)
     ttk.Label(Frame, text="      ").grid(row=4, column = 0)
 
     ttk.Label(Frame, text="Enter Script Path: ").grid(row=5, column = 0)
@@ -125,7 +137,7 @@ def main():
     ttk.Entry(MasterFrame)
 
 
-    ttk.Button(MasterFrame, text="Start", command=Server).grid(column=1, row=0)
+    
     
     root.mainloop()
 
@@ -175,12 +187,6 @@ def Server(scriptName = None, timeThing = None):
         except:
             print('Server Closed')
             break  # if user pressed a key other than the given key the loop will break
-
-            if scriptName:
-                print(scriptName)
-
-            if timeThing:
-                print(timeThing)
 
         root.update_idletasks()
         root.update()
