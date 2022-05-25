@@ -10,8 +10,8 @@ from tkinter import Scrollbar
 from tkinter import BooleanVar
 from tkinter import StringVar
 from tkinter import Text
-
-
+from tkinter import Label
+from tkinter import Canvas
 import sys
 import threading
 import datetime
@@ -21,6 +21,7 @@ import unidecode
 global root 
 global masterButton
 global MasterList
+global TimeList
 
 def main():
 
@@ -30,6 +31,8 @@ def main():
 
     global MasterList
     MasterList = "MasterList.txt"
+    global TimeList
+    TimeList = "TimeList.txt"
     
     root = tk.Tk()
     
@@ -39,9 +42,18 @@ def main():
     root.title('Candy Kingdom v0.1')
     root.configure(bg='pink')
     p1 = PhotoImage(file = 'pb-2.jpg')
-    root.iconphoto(False, p1)
 
-    MasterFrame = ttk.Frame(root, padding=10, border = 2)
+    p2 = PhotoImage(file='pb-4.png')
+    root.iconphoto(False, p1)
+    width, height = p2.width(), p2.height()
+
+    #canvas = Canvas(root, width = width, height = height, bg="pink", border=50)
+    #canvas = Canvas(root, width = 50, height = 50, bg="pink")
+    #canvas.pack()
+    #imagio = canvas.create_image(10,30, image=p2, anchor="nw")
+
+    MasterFrame = tk.Frame(root, border = 2)
+    MasterFrame.configure(bg='pink')
     MasterFrame.grid()
     
     Frame = tk.Frame(root, border = 2)
@@ -52,7 +64,7 @@ def main():
     textbox = Console(MasterFrame)
     
     v=Scrollbar(MasterFrame, orient='vertical', command=textbox.yview, width = 10)
-    v.grid(row = 1, column = 2, sticky = "e", rowspan=2)
+    v.grid(row = 1, column = 2, sticky = "e", rowspan=3)
     textbox.grid(row = 1, column = 0, sticky = "nsew", columnspan = 3)
     textbox["yscrollcommand"] = v.set
 
@@ -97,7 +109,7 @@ def main():
             all_CheckBox.set(1)
             
     W = "W"
-    ttk.Checkbutton(Frame, text="Monday", variable=arrayOfDays[0], command=checkButtonChanger_helper).grid(row=6,column=0, sticky=W)
+    ttk.Checkbutton(Frame, text="Monday", variable=arrayOfDays[0], command=checkButtonChanger_helper).grid(row=6,column=0, sticky="E")
     ttk.Checkbutton(Frame, text="Tuesday", variable=arrayOfDays[1], command=checkButtonChanger_helper).grid(row=6,column=1, sticky=W)
     ttk.Checkbutton(Frame, text="Wednesday", variable=arrayOfDays[2], command=checkButtonChanger_helper).grid(row=6,column=2, sticky=W)
     ttk.Checkbutton(Frame, text="Thursday", variable=arrayOfDays[3], command=checkButtonChanger_helper).grid(row=6,column=3, sticky=W)
@@ -119,15 +131,15 @@ def main():
     ttk.Label(Frame, text="Add New Script😎").grid(row = 3, column = 0)
     ttk.Label(Frame, text="      ").grid(row=4, column = 0)
 
-    ttk.Label(Frame, text="Enter Script Path: ").grid(row=5, column = 0)
+    ttk.Label(Frame, text="Enter Script Path: ").grid(row=8, column = 0)
     
-    ttk.Entry(Frame, textvariable = scriptName).grid(row=5, column = 1, columnspan=2, sticky="nesw")
+    ttk.Entry(Frame, textvariable = scriptName).grid(row=8, column = 1, columnspan=2, sticky="nesw")
 
     ttk.Label(Frame, text="Enter Time: ", ).grid(row=7, column = 0)
     
     ttk.Entry(Frame, textvariable = timeSchedule).grid(row=7, column = 1, columnspan=2, sticky="nesw")
     
-    ttk.Button(Frame, command = writeToMasterFile, text="Submit").grid(column=0, row=8)
+    ttk.Button(Frame, command = writeToMasterFile, text="Submit").grid(column=0, row=9)
 
     
     for buttons in arrayOfDays:
@@ -151,16 +163,16 @@ def importModules(MasterList = None):
         return
 
     MasterList = open(MasterList, "r")
-    items = MasterList.read()
+    items = MasterList.readlines()
     MasterList.close()
 
-    for scripts in items:
-        try:
-            importlib.import_module(scripts)
-            print("\tImporting {} at {}".format(str(scripts), datetime.datetime.now()))
-          
-        except ImportError:
-            print ("ERROR: {} not found".format(scripts))
+
+    try:
+        importlib.import_module(items[0])
+        print("\tImporting {} at {}".format(str(items[0]), datetime.datetime.now()))
+        
+    except ImportError:
+        print ("ERROR: {} not found".format(items[0]))
 
     print("Finished modules...")
 
@@ -174,8 +186,11 @@ def Server(scriptName = None, timeThing = None):
     masterButton.set(True)
     global MasterList 
 
-
+    #Import Modules
     importModules(MasterList)
+    
+    scriptList,timeList = checkList()
+
 
     print("Starting Server - {}".format(datetime.datetime.now()))
     #the heartbeat
@@ -184,6 +199,11 @@ def Server(scriptName = None, timeThing = None):
             if keyboard.is_pressed('x'):  # if key 'q' is pressed 
                 print('Server Closed')
                 break  # finishing the loop
+            print(datetime.datetime.now())
+            if str(datetime.datetime.now())+"\n" in timeList:
+                #runscript(scriptList[0])
+                print("NOW")
+                break
         except:
             print('Server Closed')
             break  # if user pressed a key other than the given key the loop will break
@@ -194,6 +214,7 @@ def Server(scriptName = None, timeThing = None):
     print("Server Stopped - {}".format(datetime.datetime.now()))
 
 def runscript(theScript = None, argies = None):
+        print("Running {}".format(theScript))
         th = threading.Thread(target=theScript, args=argies)
         #add threading
         #theScript
@@ -202,6 +223,20 @@ def runscript(theScript = None, argies = None):
         
 def stop():
     masterButton.set(False)
+
+def checkList():
+    global MasterList
+    global TimeList
+    
+    MasterList_File = open(MasterList, "r")
+    items = MasterList_File.readlines()
+    MasterList_File.close()
+    
+    Time_File = open(TimeList, "r")
+    items2 = Time_File.readlines()
+    Time_File.close()
+
+    return items, items2
 
 def fromAListOfPathsOnTheSharedDrive_ImportThemAllIntoRunningDirectory(ListThing = None):
     currentDirectory = os.getcwd()
@@ -221,20 +256,22 @@ def writeToMasterFile(Text = None):
     if scriptName is None or timeSchedule is None:
         return
 
-
-
-    Text = scriptName.get() + "" +  timeSchedule.get()
+    Text = scriptName.get() + ";" +  timeSchedule.get()
 
     #if MasterList
     global MasterList
+    global TimeList
 
     file1 = open(MasterList, "a")
     unaccented_string = unidecode.unidecode(Text)
     file1.write(unaccented_string + "\n")
     file1.close()
+    
+    file2 = open(TimeList, "a")
+    file2.write(unaccented_string + "\n")
+    file2.close()
+    print("Adding {} to run at {}".format(scriptName.get(), timeSchedule.get()))
 
-def addNewScriptToRunningServer(ScriptPath = None, Time = None, Day = None):
-    print("Adding {} to run at {} on {}".format(ScriptPath, Time, Day))
 
 class Console(Text):
     def __init__(self, *args, **kwargs):
